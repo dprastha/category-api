@@ -5,6 +5,7 @@ import (
 	"belajar-golang-rest-api/controller"
 	"belajar-golang-rest-api/exception"
 	"belajar-golang-rest-api/helper"
+	"belajar-golang-rest-api/middleware"
 	"belajar-golang-rest-api/repository"
 	"belajar-golang-rest-api/service"
 	"net/http"
@@ -32,7 +33,7 @@ func main() {
 
 	server := http.Server{
 		Addr:    "localhost:3000",
-		Handler: router,
+		Handler: middleware.NewAuthMiddleware(router),
 	}
 
 	err := server.ListenAndServe()
