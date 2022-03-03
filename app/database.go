@@ -4,6 +4,8 @@ import (
 	"belajar-golang-rest-api/helper"
 	"database/sql"
 	"time"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 func NewDB() *sql.DB {
