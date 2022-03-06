@@ -14,6 +14,12 @@ type ProductControllerImpl struct {
 	ProductService service.ProductService
 }
 
+func NewProductController(productService service.ProductService) ProductController {
+	return &ProductControllerImpl{
+		ProductService: productService,
+	}
+}
+
 func (controller ProductControllerImpl) Create(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
 	productCreateRequest := web.ProductCreateRequest{}
 	helper.ReadFromRequestBody(request, productCreateRequest)

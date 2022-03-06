@@ -18,7 +18,11 @@ func main() {
 	categoryRepository := repository.NewCategoryRepository()
 	categoryService := service.NewCategoryService(categoryRepository, db, validate)
 	categoryController := controller.NewCategoryController(categoryService)
-	router := app.NewRouter(categoryController)
+
+	productRepository := repository.NewProductRepository()
+	productService := service.NewProductService(productRepository, db, validate)
+	productController := controller.NewProductController(productService)
+	router := app.NewRouter(categoryController, productController)
 
 	server := http.Server{
 		Addr:    "localhost:3000",

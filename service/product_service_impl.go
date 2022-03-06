@@ -15,7 +15,15 @@ import (
 type ProductServiceImpl struct {
 	ProductRepository repository.ProductRepository
 	DB                *sql.DB
-	Validate          validator.Validate
+	Validate          *validator.Validate
+}
+
+func NewProductService(productRepository repository.ProductRepository, DB *sql.DB, validate *validator.Validate) ProductService {
+	return &ProductServiceImpl{
+		ProductRepository: productRepository,
+		DB:                DB,
+		Validate:          validate,
+	}
 }
 
 func (service *ProductServiceImpl) Create(ctx context.Context, request web.ProductCreateRequest) web.ProductResponse {
