@@ -22,10 +22,15 @@ func truncateCategory(db *sql.DB) {
 	db.Exec("TRUNCATE category")
 }
 
-func TestCreateCategorySuccess(t *testing.T) {
+func SetupTest() http.Handler {
 	db := app.SetupTestDB()
 	truncateCategory(db)
-	router := app.SetupRouter(db)
+
+	return app.SetupRouter(db)
+}
+
+func TestCreateCategorySuccess(t *testing.T) {
+	router := SetupTest()
 
 	requestBody := strings.NewReader(`{"name":"Gadget"}`)
 	request := httptest.NewRequest(http.MethodPost, "http://localhost:3000/api/v1/categories", requestBody)
@@ -48,9 +53,7 @@ func TestCreateCategorySuccess(t *testing.T) {
 	assert.Equal(t, "Gadget", responseBody["data"].(map[string]interface{})["name"])
 }
 func TestCreateCategoryFailed(t *testing.T) {
-	db := app.SetupTestDB()
-	truncateCategory(db)
-	router := app.SetupRouter(db)
+	router := SetupTest()
 
 	requestBody := strings.NewReader(`{"name":""}`)
 	request := httptest.NewRequest(http.MethodPost, "http://localhost:3000/api/v1/categories", requestBody)
