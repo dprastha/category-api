@@ -3,7 +3,13 @@ package app
 import (
 	"belajar-golang-rest-api/controller"
 	"belajar-golang-rest-api/exception"
+	"belajar-golang-rest-api/middleware"
+	"belajar-golang-rest-api/repository"
+	"belajar-golang-rest-api/service"
+	"database/sql"
+	"net/http"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -27,4 +33,18 @@ func NewRouter(categoryController controller.CategoryController, productControll
 	router.PanicHandler = exception.ErrorHandler
 
 	return router
+}
+
+func SetupRouter(db *sql.DB) http.Handler {
+	validate := validator.New()
+	categoryRepository := repository.NewCategoryRepository()
+	categoryService := service.NewCategoryService(categoryRepository, db, validate)
+	categoryController := controller.NewCategoryController(categoryService)
+
+	productRepository := repository.NewProductRepository()
+	productService := service.NewProductService(productRepository, db, validate)
+	productController := controller.NewProductController(productService)
+	router := NewRouter(categoryController, productController)
+
+	return middleware.NewAuthMiddleware(router)
 }
