@@ -20,9 +20,9 @@ func NewProductController(productService service.ProductService) ProductControll
 	}
 }
 
-func (controller ProductControllerImpl) Create(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+func (controller *ProductControllerImpl) Create(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
 	productCreateRequest := web.ProductCreateRequest{}
-	helper.ReadFromRequestBody(request, productCreateRequest)
+	helper.ReadFromRequestBody(request, &productCreateRequest)
 
 	productResponse := controller.ProductService.Create(request.Context(), productCreateRequest)
 	webResponse := web.WebResponse{
@@ -34,9 +34,9 @@ func (controller ProductControllerImpl) Create(writer http.ResponseWriter, reque
 	helper.WriteToResponseBody(writer, webResponse)
 }
 
-func (controller ProductControllerImpl) Update(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+func (controller *ProductControllerImpl) Update(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
 	productUpdateRequest := web.ProductUpdateRequest{}
-	helper.ReadFromRequestBody(request, productUpdateRequest)
+	helper.ReadFromRequestBody(request, &productUpdateRequest)
 
 	productId := params.ByName("productId")
 	id, err := strconv.Atoi(productId)
@@ -54,7 +54,7 @@ func (controller ProductControllerImpl) Update(writer http.ResponseWriter, reque
 	helper.WriteToResponseBody(writer, webResponse)
 }
 
-func (controller ProductControllerImpl) Delete(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+func (controller *ProductControllerImpl) Delete(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
 	productId := params.ByName("productId")
 	id, err := strconv.Atoi(productId)
 	helper.PanicIfError(err)
@@ -68,7 +68,7 @@ func (controller ProductControllerImpl) Delete(writer http.ResponseWriter, reque
 	helper.WriteToResponseBody(writer, webResponse)
 }
 
-func (controller ProductControllerImpl) FindById(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+func (controller *ProductControllerImpl) FindById(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
 	productId := params.ByName("productId")
 	id, err := strconv.Atoi(productId)
 	helper.PanicIfError(err)
@@ -83,7 +83,7 @@ func (controller ProductControllerImpl) FindById(writer http.ResponseWriter, req
 	helper.WriteToResponseBody(writer, webResponse)
 }
 
-func (controller ProductControllerImpl) FindAll(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+func (controller *ProductControllerImpl) FindAll(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
 	categoryResponse := controller.ProductService.FindAll(request.Context())
 	webResponse := web.WebResponse{
 		Code:   200,
