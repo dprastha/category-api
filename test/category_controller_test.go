@@ -2,12 +2,8 @@ package test
 
 import (
 	"belajar-golang-rest-api/app"
-	"belajar-golang-rest-api/controller"
-	"belajar-golang-rest-api/helper"
-	"belajar-golang-rest-api/middleware"
 	"belajar-golang-rest-api/model/domain"
 	"belajar-golang-rest-api/repository"
-	"belajar-golang-rest-api/service"
 	"context"
 	"database/sql"
 	"encoding/json"
@@ -17,43 +13,19 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	"time"
 
-	"github.com/go-playground/validator/v10"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/stretchr/testify/assert"
 )
-
-func setupTestDB() *sql.DB {
-	db, err := sql.Open("mysql", "root:@tcp(localhost:3306)/belajar_go_rest_api_test")
-	helper.PanicIfError(err)
-
-	db.SetMaxIdleConns(5)
-	db.SetMaxOpenConns(20)
-	db.SetConnMaxLifetime(60 * time.Minute)
-	db.SetConnMaxIdleTime(10 * time.Minute)
-
-	return db
-}
 
 func truncateCategory(db *sql.DB) {
 	db.Exec("TRUNCATE category")
 }
 
-func setupRouter(db *sql.DB) http.Handler {
-	validate := validator.New()
-	categoryRepository := repository.NewCategoryRepository()
-	categoryService := service.NewCategoryService(categoryRepository, db, validate)
-	categoryController := controller.NewCategoryController(categoryService)
-	router := app.NewRouter(categoryController)
-
-	return middleware.NewAuthMiddleware(router)
-}
-
 func TestCreateCategorySuccess(t *testing.T) {
-	db := setupTestDB()
+	db := app.SetupTestDB()
 	truncateCategory(db)
-	router := setupRouter(db)
+	router := app.SetupRouter(db)
 
 	requestBody := strings.NewReader(`{"name":"Gadget"}`)
 	request := httptest.NewRequest(http.MethodPost, "http://localhost:3000/api/v1/categories", requestBody)
@@ -76,9 +48,9 @@ func TestCreateCategorySuccess(t *testing.T) {
 	assert.Equal(t, "Gadget", responseBody["data"].(map[string]interface{})["name"])
 }
 func TestCreateCategoryFailed(t *testing.T) {
-	db := setupTestDB()
+	db := app.SetupTestDB()
 	truncateCategory(db)
-	router := setupRouter(db)
+	router := app.SetupRouter(db)
 
 	requestBody := strings.NewReader(`{"name":""}`)
 	request := httptest.NewRequest(http.MethodPost, "http://localhost:3000/api/v1/categories", requestBody)
@@ -100,7 +72,7 @@ func TestCreateCategoryFailed(t *testing.T) {
 	assert.Equal(t, "BAD REQUEST", responseBody["status"])
 }
 func TestUpdateCategorySuccess(t *testing.T) {
-	db := setupTestDB()
+	db := app.SetupTestDB()
 	truncateCategory(db)
 
 	tx, _ := db.Begin()
@@ -110,7 +82,7 @@ func TestUpdateCategorySuccess(t *testing.T) {
 	})
 	tx.Commit()
 
-	router := setupRouter(db)
+	router := app.SetupRouter(db)
 
 	requestBody := strings.NewReader(`{"name":"Gadget"}`)
 	request := httptest.NewRequest(http.MethodPut, "http://localhost:3000/api/v1/categories/"+strconv.Itoa(category.Id), requestBody)
@@ -134,7 +106,7 @@ func TestUpdateCategorySuccess(t *testing.T) {
 	assert.Equal(t, category.Name, responseBody["data"].(map[string]interface{})["name"])
 }
 func TestUpdateCategoryFailed(t *testing.T) {
-	db := setupTestDB()
+	db := app.SetupTestDB()
 	truncateCategory(db)
 
 	tx, _ := db.Begin()
@@ -144,7 +116,7 @@ func TestUpdateCategoryFailed(t *testing.T) {
 	})
 	tx.Commit()
 
-	router := setupRouter(db)
+	router := app.SetupRouter(db)
 
 	requestBody := strings.NewReader(`{"name":""}`)
 	request := httptest.NewRequest(http.MethodPut, "http://localhost:3000/api/v1/categories/"+strconv.Itoa(category.Id), requestBody)
@@ -166,7 +138,7 @@ func TestUpdateCategoryFailed(t *testing.T) {
 	assert.Equal(t, "BAD REQUEST", responseBody["status"])
 }
 func TestGetCategorySuccess(t *testing.T) {
-	db := setupTestDB()
+	db := app.SetupTestDB()
 	truncateCategory(db)
 
 	tx, _ := db.Begin()
@@ -176,7 +148,7 @@ func TestGetCategorySuccess(t *testing.T) {
 	})
 	tx.Commit()
 
-	router := setupRouter(db)
+	router := app.SetupRouter(db)
 
 	request := httptest.NewRequest(http.MethodGet, "http://localhost:3000/api/v1/categories/"+strconv.Itoa(category.Id), nil)
 	request.Header.Add("X-API-Key", "SECRET")
@@ -199,10 +171,10 @@ func TestGetCategorySuccess(t *testing.T) {
 }
 
 func TestGetCategoryFailed(t *testing.T) {
-	db := setupTestDB()
+	db := app.SetupTestDB()
 	truncateCategory(db)
 
-	router := setupRouter(db)
+	router := app.SetupRouter(db)
 
 	request := httptest.NewRequest(http.MethodGet, "http://localhost:3000/api/v1/categories/404", nil)
 	request.Header.Add("X-API-Key", "SECRET")
@@ -222,7 +194,7 @@ func TestGetCategoryFailed(t *testing.T) {
 	assert.Equal(t, "NOT FOUND", responseBody["status"])
 }
 func TestDeleteCategorySuccess(t *testing.T) {
-	db := setupTestDB()
+	db := app.SetupTestDB()
 	truncateCategory(db)
 
 	tx, _ := db.Begin()
@@ -232,7 +204,7 @@ func TestDeleteCategorySuccess(t *testing.T) {
 	})
 	tx.Commit()
 
-	router := setupRouter(db)
+	router := app.SetupRouter(db)
 
 	request := httptest.NewRequest(http.MethodDelete, "http://localhost:3000/api/v1/categories/"+strconv.Itoa(category.Id), nil)
 	request.Header.Add("Content-Type", "application/json")
@@ -253,10 +225,10 @@ func TestDeleteCategorySuccess(t *testing.T) {
 	assert.Equal(t, "OK", responseBody["status"])
 }
 func TestDeleteCategoryFailed(t *testing.T) {
-	db := setupTestDB()
+	db := app.SetupTestDB()
 	truncateCategory(db)
 
-	router := setupRouter(db)
+	router := app.SetupRouter(db)
 
 	request := httptest.NewRequest(http.MethodDelete, "http://localhost:3000/api/v1/categories/404", nil)
 	request.Header.Add("Content-Type", "application/json")
@@ -277,7 +249,7 @@ func TestDeleteCategoryFailed(t *testing.T) {
 	assert.Equal(t, "NOT FOUND", responseBody["status"])
 }
 func TestListCategoryFailed(t *testing.T) {
-	db := setupTestDB()
+	db := app.SetupTestDB()
 	truncateCategory(db)
 
 	tx, _ := db.Begin()
@@ -291,7 +263,7 @@ func TestListCategoryFailed(t *testing.T) {
 	})
 	tx.Commit()
 
-	router := setupRouter(db)
+	router := app.SetupRouter(db)
 
 	request := httptest.NewRequest(http.MethodGet, "http://localhost:3000/api/v1/categories", nil)
 	request.Header.Add("X-API-Key", "SECRET")
@@ -322,10 +294,10 @@ func TestListCategoryFailed(t *testing.T) {
 	assert.Equal(t, category2.Name, categoryResponse2["name"])
 }
 func TestUnauthorized(t *testing.T) {
-	db := setupTestDB()
+	db := app.SetupTestDB()
 	truncateCategory(db)
 
-	router := setupRouter(db)
+	router := app.SetupRouter(db)
 
 	request := httptest.NewRequest(http.MethodGet, "http://localhost:3000/api/v1/categories", nil)
 
